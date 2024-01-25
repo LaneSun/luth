@@ -1,45 +1,105 @@
-**Edit a file, create a new file, and clone from Bitbucket in under 2 minutes**
+# Luth Gen 1
 
-When you're done, you can delete the content in this README and update the file with details for others getting started with your repository.
+Luth 规则解析引擎的定义与说明文档，第1代
 
-*We recommend that you open this README in another tab as you perform the tasks below. You can [watch our video](https://youtu.be/0ocf7u76WSo) for a full demo of all the steps in this tutorial. Open the video in a new tab to avoid leaving Bitbucket.*
+## Reference
 
----
+### 单词
 
-## Edit a file
+进行原始匹配的元素
 
-You’ll start by editing this README file to learn how to edit a file in Bitbucket.
+```js
+// 从文本流中匹配一个字符串
+str(String)
 
-1. Click **Source** on the left side.
-2. Click the README.md link from the list of files.
-3. Click the **Edit** button.
-4. Delete the following text: *Delete this line to make a change to the README from Bitbucket.*
-5. After making your change, click **Commit** and then **Commit** again in the dialog. The commit page will open and you’ll see the change you just made.
-6. Go back to the **Source** page.
+// 从文本流中匹配一个字符，使用正则表达式
+reg(Regexp)
+```
 
----
+### 组合词
 
-## Create a file
+组合多个其它词语进行匹配的元素
 
-Next, you’ll add a new file to this repository.
+```js
+// 按顺序匹配传入的词语，需要全部匹配成功才判断为匹配完成
+seq(...Word)
 
-1. Click the **New file** button at the top of the **Source** page.
-2. Give the file a filename of **contributors.txt**.
-3. Enter your name in the empty file space.
-4. Click **Commit** and then **Commit** again in the dialog.
-5. Go back to the **Source** page.
+// 当传入词语中的任意一个匹配成功时匹配完成
+or(...Word)
 
-Before you move on, go ahead and explore the repository. You've already seen the **Source** page, but check out the **Commits**, **Branches**, and **Settings** pages.
+// 和 seq 相似，但每个词语匹配后不更新当前位置，并返回最后一个词语的匹配结果
+and(...Word)
+```
 
----
+### 量词
 
-## Clone a repository
+对传入的词语进行不定次数匹配
 
-Use these steps to clone from SourceTree, our client for using the repository command-line free. Cloning allows you to work on your files locally. If you don't yet have SourceTree, [download and install first](https://www.sourcetreeapp.com/). If you prefer to clone from the command line, see [Clone a repository](https://confluence.atlassian.com/x/4whODQ).
+```js
+// 匹配传入的词语 0 ~ N 次
+any(Word)
 
-1. You’ll see the clone button under the **Source** heading. Click that button.
-2. Now click **Check out in SourceTree**. You may need to create a SourceTree account or log in.
-3. When you see the **Clone New** dialog in SourceTree, update the destination path and name if you’d like to and then click **Clone**.
-4. Open the directory you just created to see your repository’s files.
+// 匹配传入的词语 0 ~ 1 次
+may(Word)
 
-Now that you're more familiar with your Bitbucket repository, go ahead and add a new file locally. You can [push your change back to Bitbucket with SourceTree](https://confluence.atlassian.com/x/iqyBMg), or you can [add, commit,](https://confluence.atlassian.com/x/8QhODQ) and [push from the command line](https://confluence.atlassian.com/x/NQ0zDQ).
+// 匹配传入的词语 1 ~ N 次
+some(Word)
+
+// 匹配传入的词语 <min> ~ <max> 次
+count(Word, Number<min>, Number<max>?)
+```
+
+### 断言
+
+根据传入词语对上下文进行匹配，但不更新上下文位置
+
+```js
+// 如果词语匹配成功则匹配成功
+is(Word)
+
+// 如果词语匹配失败才匹配成功
+not(Word)
+```
+
+### 提取器
+
+将匹配结果存储以供之后使用，类似于正则表达式的捕获括号
+
+```js
+$(Word)
+list(Word)
+pair(String<key>, Word)
+join(Word)
+```
+
+### 方法
+
+#### 提取方法
+
+```js
+Word.extract_from(String, Number?<offset>) -> Array | null
+Word.extract_in(String, Number?<offset>) -> Array | null
+Word.extract_all_in(String, Number?<offset>) -> [...Array]
+```
+
+#### 匹配方法
+
+```js
+Word.match_from(String, Number?<offset>) -> Boolean
+Word.match_in(String, Number?<offset>) -> Boolean
+```
+
+#### 搜索方法
+
+```js
+Word.search_in(String, Number?<offset>) -> [Number<start>, Number<end>] | null
+Word.search_all_in(String, Number?<offset>) -> [...[Number<start>, Number<end>]]
+```
+
+#### 转换方法
+
+```js
+Word.trans_from(String, Number?<offset>) -> String | null
+Word.trans_in(String, Number?<offset>) -> String | null
+Word.trans_all_in(String, Number?<offset>) -> String
+```

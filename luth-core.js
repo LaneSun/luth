@@ -4,22 +4,30 @@
 // Luth 核心类型
 
 const logger = (handle, log, name = null) => ctx => {
+    const sight_start = 18;
+    const sight_end = 12;
     const start = ctx.offset;
-    const pstart = Math.max(0, start - 8);
     const res = handle(ctx);
     const end = ctx.offset;
-    const pend = Math.min(ctx.stream.length, end + 8);
+    const range = ctx.stream.slice(start, end).replaceAll('\n', "↵");
+    const pre_str = ctx.stream.slice(0, start);
+    const column = pre_str.length - pre_str.lastIndexOf('\n') - 1;
+    const line = [...pre_str.matchAll('\n')].length;
+    const rlen = Math.max(1, range.length);
+    const pstart = Math.max(0, start - sight_start + rlen);
+    const pend = Math.min(ctx.stream.length, end + sight_end);
     let msg = name ? name + ' ' : '';
+    msg += line.toString().padStart(2) + ':' + column.toString().padStart(2) + ' | ';
     if (res.is_success())
         msg += "-";
     else
         msg += "X";
-    const range = ctx.stream.slice(start, end);
     log(
         msg + ' %c' +
-        '%c' + ctx.stream.slice(pstart, start) +
-        '%c' + (range.length ? range : '​') +
-        '%c' + ctx.stream.slice(end, pend),
+        '%c\x1b[0m\x1b[90m' + ctx.stream.slice(pstart, start).replaceAll('\n', "↵").padStart(Math.max(0, sight_start - rlen)) +
+        '%c\x1b[0m\x1b[7m' + (range.length > 0 ? range : '˰') +
+        '%c\x1b[0m\x1b[90m' + ctx.stream.slice(end, pend).replaceAll('\n', "↵").padEnd(sight_end) +
+        '\x1b[0m',
         "font-family: monospace;",
         "color: grey; background: none",
         `
@@ -55,6 +63,17 @@ export class Word {
         ctx.offset = offset;
         const res = this.matcher(ctx);
         return res.is_success();
+    }
+    match_in(str, offset = 0) {
+        const ctx = new Context();
+        ctx.stream = str;
+        ctx.offset = offset;
+        while (ctx.offset < ctx.stream.length) {
+            const res = this.matcher(ctx);
+            if (res.is_success()) return true;
+            offset++;
+        }
+        return false;
     }
     log(name = null) {
         this.matcher = logger(this.matcher, console.warn.bind(console), name);
