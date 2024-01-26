@@ -4,6 +4,8 @@ Luth 规则解析引擎，第1代
 
 用于模式匹配和文本解析，可以作为更高级的正则表达式库使用
 
+如果作为 Ext-Lang 的子模块导入则可以直接将 String 和 RegExp 类型作为单词使用
+
 该库的目标是为 Easy-Lang 项目的源代码解析部分提供支持
 
 ## Reference
@@ -17,7 +19,7 @@ Luth 规则解析引擎，第1代
 str(String)
 
 // 从文本流中匹配一个字符，使用正则表达式
-reg(Regexp)
+reg(RegExp)
 ```
 
 ### 组合词

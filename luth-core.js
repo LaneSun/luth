@@ -3,7 +3,8 @@
 //
 // Luth 核心类型
 
-const logger = (handle, log, name = null) => ctx => {
+const logger = (ctx, handle, name) => {
+    const name_width = 16;
     const sight_start = 18;
     const sight_end = 12;
     const start = ctx.offset;
@@ -16,13 +17,13 @@ const logger = (handle, log, name = null) => ctx => {
     const rlen = Math.max(1, range.length);
     const pstart = Math.max(0, start - sight_start + rlen);
     const pend = Math.min(ctx.stream.length, end + sight_end);
-    let msg = name ? name + ' ' : '';
+    let msg = (name || '').padStart(name_width, ' ') + " |" + ' ';
     msg += line.toString().padStart(2) + ':' + column.toString().padStart(2) + ' | ';
     if (res.is_success())
         msg += "-";
     else
         msg += "X";
-    log(
+    console.log(
         msg + ' %c' +
         '%c' + ctx.stream.slice(pstart, start).replaceAll('\n', "↵").padStart(Math.max(0, sight_start - rlen)) +
         '%c' + (range.length > 0 ? range : '​') +
@@ -43,18 +44,26 @@ const logger = (handle, log, name = null) => ctx => {
 export class Word {
     static log_all = false;
     static log_result = false;
+    name = '';
     handle;
-    constructor(handle = null, name = null) {
-        if (handle) {
-            if (Word.log_all)
-                this.matcher = logger(
-                    handle,
-                    console.log.bind(console),
-                    (name || '').padStart(8, ' ') + " |",
-                );
-            else
-                this.matcher = handle;
-        }
+    f_log = false;
+    constructor(handle = null, name = '') {
+        this.handle = handle;
+        this.name = name;
+    }
+    matcher(ctx) {
+        if (this.f_log || Word.log_all)
+            return logger(ctx, () => this.handle(ctx), this.get_name());
+        else
+            return this.handle(ctx);
+    }
+    get_name() {
+        return this.name;
+    }
+    log(name = '') {
+        this.name = name;
+        this.f_log = true;
+        return this;
     }
     match_from(str, offset = 0) {
         const ctx = new Context();
@@ -74,11 +83,14 @@ export class Word {
         }
         return false;
     }
-    log(name = null) {
-        this.matcher = logger(this.matcher, console.warn.bind(console), name);
-        return this;
-    }
 }
+
+export const TraitWord = {
+    matcher: Word.prototype.matcher,
+    get_name: Word.prototype.get_name,
+    match_from: Word.prototype.match_from,
+    match_in: Word.prototype.match_in,
+};
 
 export class Context {
     static StreamReachEnd = Symbol("Context::StreamReachEnd");
