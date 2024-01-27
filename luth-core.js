@@ -86,6 +86,7 @@ export class Word {
 }
 
 export const TraitWord = {
+    handle: null,
     matcher: Word.prototype.matcher,
     get_name: Word.prototype.get_name,
     match_from: Word.prototype.match_from,
