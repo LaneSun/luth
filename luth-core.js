@@ -44,12 +44,12 @@ const logger = (ctx, handle, name) => {
 export class Word {
     static log_all = false;
     static log_result = false;
-    name = '';
+    pname = '';
     handle;
     f_log = false;
     constructor(handle = null, name = '') {
         this.handle = handle;
-        this.name = name;
+        this.pname = name;
     }
     matcher(ctx) {
         if (this.f_log || Word.log_all)
@@ -58,11 +58,21 @@ export class Word {
             return this.handle(ctx);
     }
     get_name() {
-        return this.name;
+        return this.pname;
+    }
+    name(name) {
+        this.pname = name;
+        return this;
     }
     log(name = '') {
-        this.name = name;
+        this.pname = name;
         this.f_log = true;
+        return this;
+    }
+    ref(word) {
+        this.pname = word.pname;
+        this.handle = word.handle;
+        this.f_log = word.f_log;
         return this;
     }
     match_from(str, offset = 0) {
@@ -82,6 +92,16 @@ export class Word {
             offset++;
         }
         return false;
+    }
+    extract_from(str, offset = 0) {
+        const ctx = new Context();
+        ctx.stream = str;
+        ctx.offset = offset;
+        const res = this.matcher(ctx);
+        if (res.is_success())
+            return res.get_results()
+        else
+            return null;
     }
 }
 
@@ -161,5 +181,20 @@ export class Result {
     }
     is_success() {
         return this.type === Result.TypeSuccess;
+    }
+}
+
+export class Pin {
+    data;
+    constructor(data) {
+        this.data = data;
+    }
+}
+
+export class Pair {
+    head; data;
+    constructor(head, data) {
+        this.head = head;
+        this.data = data;
     }
 }
